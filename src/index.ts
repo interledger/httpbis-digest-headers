@@ -32,7 +32,7 @@ function nodeAlgo(algorithm: string): string {
     switch(algorithm) {
         case 'sha-256': return 'sha256'
         case 'sha-512': return 'sha512'
-        default: throw new Error(`Unsupported digest algorithm ${algorithm}.`)
+        default: throw new Error(`Unsupported digest algorithm '${algorithm}'.`)
     }
 }
 
@@ -73,4 +73,5 @@ export function verifyContentDigest(body: string | Buffer | undefined, digestHea
             return false
         }
     }
+    return true
 }
