@@ -46,6 +46,10 @@ describe('digest', () => {
             expect(verifyContentDigest('{hello:"world"}', 'sha-256=:LsWDvMD3TQ5hD1FciIKL6ePw7YR8BVI5dD6NnJwusRs=:'))
                 .to.be.true
         });
+        it('verifies a single digest with empty body (SHA256)', () => {
+            expect(verifyContentDigest(undefined, 'sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:'))
+                .to.be.true
+        });
         it('verifies a single digest (SHA512)', () => {
             expect(verifyContentDigest('{hello:"world"}', 'sha-512=:YwRB5Y5G6jIfS1V0gBi59+hVKgu+vFjZKmeXdqMQQjwrwh5hA0vNbwDQi30SCiOK+e2dRs3P4tMo72WT3BfmQg==:'))
                 .to.be.true
@@ -61,6 +65,12 @@ describe('digest', () => {
         it('throws with invalid digest algorithm', () => {
             expect(verifyContentDigest.bind(undefined, '{hello:"world"}', 'md5=:YwRB5Y5G6jIfS1V0gBi59+hVKgu+vFjZKmeXdqMQQjwrwh5hA0vNbwDQi30SCiOK+e2dRs3P4tMo72WT3BfmQg==:'))
                 .to.throw(/^Unsupported digest algorithm/)
+        });
+        it('throws with invalid header', () => {
+            expect(verifyContentDigest.bind(undefined, '', 'sha-256="NOT A HASH"'))
+            .to.throw(/^Invalid value for digest/)
+            expect(verifyContentDigest.bind(undefined, '', 'sha-256=LsWDvMD3TQ5hD1FciIKL6ePw7YR8BVI5dD6NnJwusRs='))
+            .to.throw(/^Parse error/)
         });
         it('verifies two digests (SHA256 and SHA512)', () => {
             expect(verifyContentDigest('{hello:"world"}', 'sha-256=:LsWDvMD3TQ5hD1FciIKL6ePw7YR8BVI5dD6NnJwusRs=:, sha-512=:YwRB5Y5G6jIfS1V0gBi59+hVKgu+vFjZKmeXdqMQQjwrwh5hA0vNbwDQi30SCiOK+e2dRs3P4tMo72WT3BfmQg==:'))
