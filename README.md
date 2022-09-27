@@ -17,14 +17,14 @@ The library currently only supports sha-256 and sha-512 algorithms
 ### Creating a digest header
 
 ```js
-const { createContentDigestHeader } = require('httpbis-digest-headers');
+import { createContentDigestHeader } from 'httpbis-digest-headers';
 request.setHeader('Content-Digest', createContentDigestHeader(messageBody, ['sha-256']))
 ```
 
 ### Verify a digest header
 
 ```js
-const { verifyContentDigest } = require('httpbis-digest-headers');
+import { verifyContentDigest } from 'httpbis-digest-headers';
 const server = http.createServer(async (req, res) => {
   const buffers = [];
 
