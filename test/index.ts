@@ -68,9 +68,9 @@ describe('digest', () => {
         });
         it('throws with invalid header', () => {
             expect(verifyContentDigest.bind(undefined, '', 'sha-256="NOT A HASH"'))
-            .to.throw(/^Invalid value for digest/)
+                .to.throw(/^Invalid value for digest/)
             expect(verifyContentDigest.bind(undefined, '', 'sha-256=LsWDvMD3TQ5hD1FciIKL6ePw7YR8BVI5dD6NnJwusRs='))
-            .to.throw(/^Parse error/)
+                .to.throw(/^Parse error/)
         });
         it('verifies two digests (SHA256 and SHA512)', () => {
             expect(verifyContentDigest('{hello:"world"}', 'sha-256=:LsWDvMD3TQ5hD1FciIKL6ePw7YR8BVI5dD6NnJwusRs=:, sha-512=:YwRB5Y5G6jIfS1V0gBi59+hVKgu+vFjZKmeXdqMQQjwrwh5hA0vNbwDQi30SCiOK+e2dRs3P4tMo72WT3BfmQg==:'))
