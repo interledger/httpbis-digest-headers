@@ -32,4 +32,5 @@ const server = http.createServer(async (req, res) => {
     buffers.push(chunk);
   }
   const verified = verifyContentDigest(Buffer.concat(buffers), req.getHeader('Content-Digest'))
-});```
+});
+```
