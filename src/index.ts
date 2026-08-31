@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash } from 'node:crypto';
 import {
 	ByteSequence,
 	type Item,
@@ -6,9 +6,9 @@ import {
 	isInnerList,
 	parseDictionary,
 	serializeDictionary,
-} from "structured-headers";
+} from 'structured-headers';
 
-export type DigestAlgorithm = "sha-256" | "sha-512";
+export type DigestAlgorithm = 'sha-256' | 'sha-512';
 
 /**
  * Implementation of functions to assist with HTTP Content Digest headers per
@@ -37,10 +37,10 @@ export type DigestAlgorithm = "sha-256" | "sha-512";
  */
 function nodeAlgo(algorithm: string): string {
 	switch (algorithm) {
-		case "sha-256":
-			return "sha256";
-		case "sha-512":
-			return "sha512";
+		case 'sha-256':
+			return 'sha256';
+		case 'sha-512':
+			return 'sha512';
 		default:
 			throw new Error(`Unsupported digest algorithm '${algorithm}'.`);
 	}
@@ -65,8 +65,8 @@ export function createContentDigestHeader(
 					[
 						new ByteSequence(
 							createHash(nodeAlgo(algo))
-								.update(body || "")
-								.digest("base64"),
+								.update(body || '')
+								.digest('base64'),
 						),
 						new Map(),
 					],
@@ -95,8 +95,8 @@ export function verifyContentDigest(
 			);
 		}
 		const hash = createHash(nodeAlgo(algo))
-			.update(body || "")
-			.digest("base64");
+			.update(body || '')
+			.digest('base64');
 		if (digest[0].toBase64() !== hash) {
 			return false;
 		}
