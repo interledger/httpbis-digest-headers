@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { createContentDigestHeader, DigestAlgorithm, verifyContentDigest} from '../src/index'
+import { createContentDigestHeader, type DigestAlgorithm, verifyContentDigest} from '../src/index.ts'
 
 describe('digest', () => {
     describe('.createContentDigestHeader', () => {

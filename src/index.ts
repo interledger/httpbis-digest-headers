@@ -1,5 +1,5 @@
-import { createHash } from 'crypto'
-import { ByteSequence, isByteSequence, isInnerList, Item, parseDictionary, serializeDictionary } from 'structured-headers'
+import { createHash } from 'node:crypto'
+import { ByteSequence, isByteSequence, isInnerList, type Item, parseDictionary, serializeDictionary } from 'structured-headers'
 
 export type DigestAlgorithm = 'sha-256' | 'sha-512'
 
