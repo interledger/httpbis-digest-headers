@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import {
 	type Item,
 	isInnerList,
@@ -6,7 +5,17 @@ import {
 	serializeDictionary,
 } from 'structured-headers';
 
-export type DigestAlgorithm = 'sha-256' | 'sha-512';
+/**
+ * The digest algorithms supported. Content-Digest header keys use the
+ * lowercased form of these identifiers.
+ */
+export type DigestAlgorithm = 'SHA-256' | 'SHA-512';
+
+/**
+ * A string or any binary source `crypto.subtle.digest` understands, so this
+ * works in both Node.js and browser environments.
+ */
+export type DigestBody = string | BufferSource;
 
 /**
  * Implementation of functions to assist with HTTP Content Digest headers per
@@ -18,53 +27,34 @@ export type DigestAlgorithm = 'sha-256' | 'sha-512';
  * | Algorithm | Status   | Description                | Reference(s) |
  * | Key       |          |                            |              |
  * +===========+==========+============================+==============+
- * | sha-512   | standard | The SHA-512 algorithm.     | [RFC6234],   |
+ * | SHA-512   | standard | The SHA-512 algorithm.     | [RFC6234],   |
  * |           |          |                            | [RFC4648]    |
  * +-----------+----------+----------------------------+--------------+
- * | sha-256   | standard | The SHA-256 algorithm.     | [RFC6234],   |
+ * | SHA-256   | standard | The SHA-256 algorithm.     | [RFC6234],   |
  * |           |          |                            | [RFC4648]    |
  * +-----------+----------+----------------------------+--------------+
  *
  */
-
-/**
- * Returns the nodejs hash digest algorithm identifier given an identifier from a content-digest header
- *
- * @param algorithm the algorithm identifier as specified in the header
- * @returns the algorithm identifier to use in the nodejs `createHash` function
- */
-function nodeAlgo(algorithm: string): string {
-	switch (algorithm) {
-		case 'sha-256':
-			return 'sha256';
-		case 'sha-512':
-			return 'sha512';
-		default:
-			throw new Error(`Unsupported digest algorithm '${algorithm}'.`);
-	}
-}
 
 /**
  * Create the content-digest header for a given message body
  *
  * @param body the message body
- * @param algorithms the digest algorithms to use (only 'sha-256' and 'sha-512' supported)
+ * @param algorithms the digest algorithms to use (only 'SHA-256' and 'SHA-512' supported)
  * @returns the string that can be used as the content-digest header value
  */
-export function createContentDigestHeader(
-	body: string | Buffer | undefined,
+export async function createContentDigestHeader(
+	body: DigestBody,
 	algorithms: DigestAlgorithm[],
-): string {
-	return serializeDictionary(
-		new Map<string, Item>(
-			algorithms.map((algo) => {
-				return [
-					algo,
-					[toArrayBuffer(hashBody(body, algo)), new Map()],
-				] as readonly [string, Item];
-			}),
-		),
+): Promise<string> {
+	const entries = await Promise.all(
+		algorithms.map(async (algo) => {
+			const digest = await hashBody(body, toDigestAlgorithm(algo));
+			const key = algo.toLowerCase();
+			return [key, [digest, new Map()]] as readonly [string, Item];
+		}),
 	);
+	return serializeDictionary(new Map(entries));
 }
 
 /**
@@ -74,10 +64,10 @@ export function createContentDigestHeader(
  * @param digestHeader the content-digest header
  * @returns true if all digests in the header are verified, false if not
  */
-export function verifyContentDigest(
-	body: string | Buffer | undefined,
+export async function verifyContentDigest(
+	body: DigestBody,
 	digestHeader: string,
-) {
+): Promise<boolean> {
 	const digests = parseDictionary(digestHeader);
 	for (const [algo, digest] of digests) {
 		if (isInnerList(digest) || !(digest[0] instanceof ArrayBuffer)) {
@@ -85,23 +75,33 @@ export function verifyContentDigest(
 				`Invalid value for digest with algorithm key of '${algo}'`,
 			);
 		}
-		const hash = hashBody(body, algo);
-		if (!hash.equals(Buffer.from(digest[0]))) {
+		const hash = await hashBody(body, toDigestAlgorithm(algo));
+		if (!arrayBuffersEqual(hash, digest[0])) {
 			return false;
 		}
 	}
 	return true;
 }
 
-function hashBody(body: string | Buffer | undefined, algo: string): Buffer {
-	return createHash(nodeAlgo(algo))
-		.update(body || '')
-		.digest();
+function toDigestAlgorithm(algorithm: string): DigestAlgorithm {
+	const algo = algorithm.toUpperCase();
+	if (algo !== 'SHA-256' && algo !== 'SHA-512') {
+		throw new Error(`Unsupported digest algorithm '${algorithm}'.`);
+	}
+	return algo;
 }
 
-function toArrayBuffer(buffer: Buffer): ArrayBuffer {
-	return buffer.buffer.slice(
-		buffer.byteOffset,
-		buffer.byteOffset + buffer.byteLength,
-	);
+function hashBody(
+	body: DigestBody,
+	algo: DigestAlgorithm,
+): Promise<ArrayBuffer> {
+	const data = typeof body === 'string' ? new TextEncoder().encode(body) : body;
+	return crypto.subtle.digest(algo, data);
+}
+
+function arrayBuffersEqual(a: ArrayBuffer, b: ArrayBuffer): boolean {
+	if (a.byteLength !== b.byteLength) return false;
+	const viewA = new Uint8Array(a);
+	const viewB = new Uint8Array(b);
+	return viewA.every((byte, i) => byte === viewB[i]);
 }
