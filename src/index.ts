@@ -1,8 +1,6 @@
 import { createHash } from 'node:crypto';
 import {
-	ByteSequence,
 	type Item,
-	isByteSequence,
 	isInnerList,
 	parseDictionary,
 	serializeDictionary,
@@ -62,14 +60,7 @@ export function createContentDigestHeader(
 			algorithms.map((algo) => {
 				return [
 					algo,
-					[
-						new ByteSequence(
-							createHash(nodeAlgo(algo))
-								.update(body || '')
-								.digest('base64'),
-						),
-						new Map(),
-					],
+					[toArrayBuffer(hashBody(body, algo)), new Map()],
 				] as readonly [string, Item];
 			}),
 		),
@@ -89,17 +80,28 @@ export function verifyContentDigest(
 ) {
 	const digests = parseDictionary(digestHeader);
 	for (const [algo, digest] of digests) {
-		if (isInnerList(digest) || !isByteSequence(digest[0])) {
+		if (isInnerList(digest) || !(digest[0] instanceof ArrayBuffer)) {
 			throw new Error(
 				`Invalid value for digest with algorithm key of '${algo}'`,
 			);
 		}
-		const hash = createHash(nodeAlgo(algo))
-			.update(body || '')
-			.digest('base64');
-		if (digest[0].toBase64() !== hash) {
+		const hash = hashBody(body, algo);
+		if (!hash.equals(Buffer.from(digest[0]))) {
 			return false;
 		}
 	}
 	return true;
+}
+
+function hashBody(body: string | Buffer | undefined, algo: string): Buffer {
+	return createHash(nodeAlgo(algo))
+		.update(body || '')
+		.digest();
+}
+
+function toArrayBuffer(buffer: Buffer): ArrayBuffer {
+	return buffer.buffer.slice(
+		buffer.byteOffset,
+		buffer.byteOffset + buffer.byteLength,
+	);
 }
