@@ -139,6 +139,13 @@ describe('digest', () => {
 			);
 		});
 
+		it("doesn't verify a digest of the wrong length (SHA256)", async () => {
+			assert.equal(
+				await verifyContentDigest('{hello:"world"}', 'sha-256=:AAAA:'),
+				false,
+			);
+		});
+
 		it('verifies a single digest from a Buffer body (SHA256)', async () => {
 			assert.equal(
 				await verifyContentDigest(
