@@ -8,16 +8,16 @@
   "engines": {
     "node": ">=24.0.0"
   },
+  "packageManager": "pnpm@12.2.1",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
-    "lint": "biome check ./src ./test && npm run typecheck",
+    "lint": "biome check ./src ./test && pnpm typecheck",
     "lint:fix": "biome check --write ./src ./test",
-    "prepare": "npm run build",
-    "preversion": "npm run lint",
-    "coverage": "node --test --experimental-test-coverage",
-    "pretest": "npm run typecheck",
-    "test": "node --test"
+    "prepare": "pnpm build",
+    "preversion": "pnpm lint",
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage"
   },
   "files": [
     "lib/"
