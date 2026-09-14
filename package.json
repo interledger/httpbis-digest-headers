@@ -41,7 +41,7 @@
   "homepage": "https://github.com/interledger/httpbis-digest-headers#readme",
   "devDependencies": {
     "@biomejs/biome": "^2.5.11",
-    "@types/node": "^25.6.0",
+    "@types/node": "^26.5.1",
     "typescript": "^7.0.2"
   },
   "dependencies": {
